@@ -158,17 +158,24 @@ test('open removes speckle but keeps the large blob', () => {
 
 test('close fills a small hole inside a blob', () => {
   const { m, w, h } = maskFrom([
-    '.......',
-    '.#####.',
-    '.##.##.',
-    '.#####.',
-    '.......',
+    '.........',
+    '.........',
+    '..#####..',
+    '..##.##..',
+    '..#####..',
+    '.........',
+    '.........',
   ]);
   const out = IP.close(m, w, h, 1);
-  assert.equal(out[2 * w + 3], 1);
-  // total foreground count must not shrink
-  const sum = (a) => a.reduce((s, v) => s + v, 0);
-  assert.ok(sum(out) >= sum(m));
+  assert.deepEqual(maskToRows(out, w, h), [
+    '.........',
+    '.........',
+    '..#####..',
+    '..#####..',
+    '..#####..',
+    '.........',
+    '.........',
+  ]);
 });
 
 test('open is idempotent', () => {
