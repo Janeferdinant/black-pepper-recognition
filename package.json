@@ -1,0 +1,13 @@
+{
+  "name": "black-pepper-recognition",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive explainer of a co-authored IEEE paper on harvestable black pepper recognition. Illustrative demos only; no paper code or data.",
+  "license": "CC-BY-NC-ND-4.0",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
