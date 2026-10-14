@@ -4,7 +4,7 @@
 
 ## Overview
 
-This repository is an independent, educational explainer of the published paper *Harvestable Black Pepper Recognition Using Computer Vision* (S. Joseph, N. F. Jane Rose and P. V. Akhil, ICACC 2019, IEEE). It explains in plain language how the paper recognises harvestable pepper: pre-processing, three gated stages ending in a ResNet-50 classifier, and how its "global accuracy" is defined. It also points out where the paper is unclear. **No code, data, images, figures, tables or text from the paper are included, and the paper's code and data are not released.** Every statement about the paper is traced to a paper page in [docs/runs/2026-10-14-paper-trace.md](docs/runs/2026-10-14-paper-trace.md).
+This repository is an independent, educational explainer of the published paper *Harvestable Black Pepper Recognition Using Computer Vision* (S. Joseph, N. F. Jane Rose and Akhil Vijayan, ICACC 2019, IEEE). It explains in plain language how the paper recognises harvestable pepper: pre-processing, three gated stages ending in a ResNet-50 classifier, and how its "global accuracy" is defined. It also points out where the paper is unclear. **No code, data, images, figures, tables or text from the paper are included, and the paper's code and data are not released.** Every statement about the paper is traced to a paper page in [docs/runs/2026-10-14-paper-trace.md](docs/runs/2026-10-14-paper-trace.md).
 
 ## Demo
 
@@ -153,9 +153,9 @@ Still not answered by the paper:
 
 ## Credits & citation
 
-Paper: S. Joseph, N. F. Jane Rose and P. V. Akhil, "Harvestable Black Pepper Recognition Using Computer Vision," *2019 9th International Conference on Advances in Computing and Communication (ICACC)*, Kochi, India, IEEE, 2019, pp. 97-102. DOI: [10.1109/ICACC48162.2019.8986220](https://doi.org/10.1109/ICACC48162.2019.8986220). (The paper's title page gives the third author as Akhil Vijayan.)
+Paper: S. Joseph, N. F. Jane Rose and Akhil Vijayan, "Harvestable Black Pepper Recognition Using Computer Vision," *2019 9th International Conference on Advances in Computing and Communication (ICACC)*, Kochi, India, IEEE, 2019, pp. 97-102. DOI: [10.1109/ICACC48162.2019.8986220](https://doi.org/10.1109/ICACC48162.2019.8986220). (The DOI record lists the third author as "P. V. Akhil"; the paper's title page gives Akhil Vijayan.)
 
-Credit for the paper belongs to all three authors: Shelbi Joseph, N. F. Jane Rose (Jane Rose Ferdinant) and P. V. Akhil. This explainer is independent and is not affiliated with or endorsed by IEEE or the conference. It explains the published method only; the paper's code and data are not released and none is included.
+Credit for the paper belongs to all three authors: Shelbi Joseph, N. F. Jane Rose (Jane Rose Ferdinant) and Akhil Vijayan. This explainer is independent and is not affiliated with or endorsed by IEEE or the conference. It explains the published method only; the paper's code and data are not released and none is included.
 
 ## License
 
