@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harvestable Black Pepper Recognition: Interactive Explainer</title>
+<meta name="description" content="An unofficial interactive explainer of a co-authored IEEE paper on recognising harvestable black pepper with computer vision. Built from the public abstract; demos are illustrative and use synthetic images.">
+<meta name="color-scheme" content="light dark">
+<style>
+:root{
+  --bg:#f6f1e7; --surface:#fffdf8; --surface2:#efe8d8; --ink:#1c2a20; --muted:#55604f;
+  --line:#d6ccb5; --green:#2c5e3a; --green-ink:#ffffff; --red:#a4231b; --amber:#8a5200;
+  --amber-bg:#fbefd5; --focus:#0b57d0; --mask-bg:#1b1f1c; --mask-fg:#f4f0e6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131815; --surface:#1b221d; --surface2:#242d27; --ink:#ece7da; --muted:#a8b3a3;
+    --line:#38443b; --green:#7fc08e; --green-ink:#0f1a12; --red:#ff8a80; --amber:#f0b45a;
+    --amber-bg:#2e2412; --focus:#8ab4ff; --mask-bg:#0c0f0d; --mask-fg:#f4f0e6;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:1rem/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:62rem;margin:0 auto;padding:0 16px}
+h1,h2,h3{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;line-height:1.2;margin:0 0 .5em}
+h1{font-size:clamp(1.8rem,5vw,2.9rem);letter-spacing:-.01em}
+h2{font-size:clamp(1.45rem,3.4vw,2rem);margin-top:0}
+h3{font-size:1.15rem}
+p{margin:.6em 0}
+a{color:var(--green);text-underline-offset:2px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--surface);color:var(--ink);padding:8px 12px;border:2px solid var(--focus);z-index:10}
+.skip:focus{left:8px}
+header.hero{padding:40px 0 24px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--surface2),var(--bg))}
+.eyebrow{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.lede{font-size:1.1rem;max-width:42rem;color:var(--muted)}
+nav.toc{border-bottom:1px solid var(--line);background:var(--surface)}
+nav.toc ul{list-style:none;margin:0;padding:8px 0;display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.9rem}
+nav.toc a{display:inline-block;padding:6px 2px}
+section{padding:36px 0;border-bottom:1px solid var(--line)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.notice{background:var(--amber-bg);border:1px solid var(--amber);border-radius:10px;padding:12px 14px;color:var(--ink)}
+.notice strong{color:var(--amber)}
+.illus{display:inline-block;font-size:.78rem;font-weight:600;color:var(--amber);background:var(--amber-bg);border:1px dashed var(--amber);border-radius:999px;padding:3px 10px;margin:0 0 8px}
+.status{display:inline-block;font-size:.78rem;font-weight:600;border-radius:999px;padding:2px 9px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);white-space:nowrap}
+.status.reported{border-color:var(--green);color:var(--green)}
+.status.gap{border-color:var(--red);color:var(--red)}
+.grid2{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+ul.plain{padding-left:1.2em}
+/* pipeline chain */
+.chain{list-style:none;margin:12px 0;padding:0;display:flex;flex-direction:column;gap:0}
+.chain li{display:flex;flex-direction:column;align-items:stretch}
+.chain button,.layer button{font:inherit;color:var(--ink);text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;width:100%}
+.chain button[aria-pressed="true"],.layer button[aria-pressed="true"]{border-color:var(--green);background:var(--surface2)}
+.chain button:hover,.layer button:hover{border-color:var(--green)}
+.chain .arrow{text-align:center;color:var(--muted);line-height:1.2;padding:2px 0;font-size:.85rem}
+.chain .skipped button{opacity:.45;text-decoration:line-through}
+.chain .tag{display:block;font-size:.78rem;color:var(--muted)}
+@media (min-width:820px){
+  .chain{flex-direction:row;align-items:stretch}
+  .chain li{flex-direction:row;flex:1;align-items:center}
+  .chain .arrow{padding:0 4px}
+  .chain .arrow span{display:inline-block;transform:rotate(-90deg)}
+}
+.detail{min-height:7.5em}
+fieldset{border:1px solid var(--line);border-radius:10px;margin:12px 0;padding:8px 14px}
+legend{padding:0 6px;font-weight:600}
+fieldset label{display:block;padding:4px 0}
+/* demo */
+.views{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (min-width:900px){.views{grid-template-columns:repeat(4,1fr)}}
+.views figure{margin:0}
+.views canvas{width:100%;height:auto;aspect-ratio:4/3;image-rendering:pixelated;border:1px solid var(--line);border-radius:6px;background:var(--mask-bg);display:block}
+.views figcaption{font-size:.82rem;color:var(--muted);margin-top:4px}
+.controls{display:grid;gap:10px 22px;grid-template-columns:1fr;margin:16px 0}
+@media (min-width:700px){.controls{grid-template-columns:1fr 1fr}}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:.92rem}
+.ctl output{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:500}
+.ctl input[type=range]{width:100%;min-height:32px;accent-color:var(--green)}
+.ctl select{font:inherit;width:100%;padding:8px;border-radius:8px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
+.huebar{position:relative;height:12px;border-radius:6px;border:1px solid var(--line);background:linear-gradient(90deg,hsl(0 80% 50%),hsl(60 80% 50%),hsl(120 80% 40%),hsl(180 80% 45%),hsl(240 80% 55%),hsl(300 80% 50%),hsl(360 80% 50%));margin:6px 0 2px}
+.huebar i{position:absolute;top:-3px;bottom:-3px;border:2px solid var(--ink);border-radius:4px;background:rgba(255,255,255,.18)}
+.btn{font:inherit;font-weight:600;padding:9px 14px;border-radius:8px;border:2px solid var(--green);background:var(--surface);color:var(--green);cursor:pointer;min-height:44px}
+.btn:hover{background:var(--green);color:var(--green-ink)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.readout{font-variant-numeric:tabular-nums;background:var(--surface2);border-radius:8px;padding:10px 12px;font-size:.95rem}
+.crops{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.crops figure{margin:0;text-align:center;font-size:.75rem;color:var(--muted)}
+.crops canvas{width:64px;height:64px;image-rendering:pixelated;border:1px solid var(--line);border-radius:4px;display:block}
+/* resnet */
+.layer{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.layer .bar{display:block;height:8px;border-radius:4px;background:var(--green);margin-top:6px}
+.layer .meta{font-size:.8rem;color:var(--muted)}
+.big{font-family:Georgia,serif;font-size:1.6rem}
+.result{border:2px dashed var(--green);border-radius:14px;padding:18px;background:var(--surface)}
+.result .num{font-family:Georgia,serif;font-size:clamp(2rem,8vw,3rem);color:var(--green);line-height:1}
+footer{padding:28px 0 48px;color:var(--muted);font-size:.92rem}
+code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Unofficial interactive explainer</p>
+    <h1>Harvestable Black Pepper Recognition Using Computer Vision</h1>
+    <p class="lede">How can a camera tell pepper that is ready to pick from leaves, branches and unripe berries? This page explains the idea behind a co-authored IEEE conference paper, using only what is publicly stated, plus clearly labelled illustrative demos.</p>
+    <div class="card" style="margin-top:16px">
+      <p style="margin-top:0"><strong>Paper.</strong> S. Joseph, N. F. Jane Rose and P. V. Akhil, &ldquo;Harvestable Black Pepper Recognition Using Computer Vision,&rdquo; <em>2019 9th International Conference on Advances in Computing and Communication (ICACC)</em>, Kochi, India, IEEE, 2019, pp. 97&ndash;102.
+      DOI: <a href="https://doi.org/10.1109/ICACC48162.2019.8986220">10.1109/ICACC48162.2019.8986220</a></p>
+      <p style="margin-bottom:0"><strong>Co-authors.</strong> Shelbi Joseph, N. F. Jane Rose (Jane Rose Ferdinant) and P. V. Akhil. This page credits all three; it was prepared by Jane Rose Ferdinant.</p>
+    </div>
+    <p class="notice" style="margin-top:16px"><strong>Code and data are not released.</strong> This repository contains no code, dataset, images, figures or text from the paper. Every demo below runs on synthetic images generated in your browser and is labelled <em>Illustrative example, not the paper&rsquo;s implementation</em>.</p>
+  </div>
+</header>
+
+<nav class="toc" aria-label="On this page">
+  <div class="wrap"><ul>
+    <li><a href="#problem">The problem</a></li>
+    <li><a href="#public">What is public</a></li>
+    <li><a href="#pipeline">Pipeline</a></li>
+    <li><a href="#demo">Segmentation demo</a></li>
+    <li><a href="#resnet">ResNet-50 verifier</a></li>
+    <li><a href="#result">Reported result</a></li>
+    <li><a href="#limits">Limitations</a></li>
+    <li><a href="#future">Future scope</a></li>
+    <li><a href="#sources">Sources and gaps</a></li>
+  </ul></div>
+</nav>
+
+<main id="main">
+
+<section id="problem"><div class="wrap">
+  <h2>The problem: what does &ldquo;harvestable&rdquo; mean?</h2>
+  <div class="grid2">
+    <div>
+      <p>Black pepper grows as hanging spikes of small round berries on a climbing vine. Growers pick a spike when its berries have reached the right stage of maturity, which is usually judged by eye. In general horticultural guidance, picking begins once a berry or two on a spike has started to change colour from green towards yellow or red, while the rest are still firm (see, for example, the general-reference summary on <a href="https://en.wikipedia.org/wiki/Black_pepper">Wikipedia</a>).</p>
+      <p><span class="status gap">Gap</span> The paper&rsquo;s own working definition of &ldquo;harvestable&rdquo; is not available in the public abstract, so this page does not claim one for the paper.</p>
+    </div>
+    <div class="card">
+      <h3>Why automate recognition?</h3>
+      <ul class="plain">
+        <li>Ripening is uneven across a vine, so picking can mean repeated, labour-intensive passes.</li>
+        <li>A harvesting robot first has to <em>find</em> pickable spikes among leaves, branches and trunks.</li>
+        <li>The cluttered scene is the hard part: the abstract names leaves, trunks and branches, and unripe pepper as the things to tell apart from harvestable fruit.</li>
+      </ul>
+      <p class="meta" style="color:var(--muted);font-size:.9rem">The paper&rsquo;s stated objective is to speed up recognition of harvestable pepper for automated harvesting.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="public"><div class="wrap">
+  <h2>What the public sources state</h2>
+  <p>Everything in this table comes from the public abstract (as indexed by Semantic Scholar from the IEEE record) or from the author&rsquo;s CV. It is paraphrased, not quoted at length.</p>
+  <div class="tablewrap card"><table>
+    <caption class="sr-only">Statements about the paper and where they come from</caption>
+    <thead><tr><th scope="col">What is stated</th><th scope="col">Source</th></tr></thead>
+    <tbody>
+      <tr><td>The goal is faster recognition of harvestable black pepper, to support automated harvesting.</td><td>Abstract</td></tr>
+      <tr><td>The authors introduce a new black-pepper image set captured with a digital camera.</td><td>Abstract, CV</td></tr>
+      <tr><td>The system must separate harvestable pepper from leaves, trunks and branches, and unripe pepper.</td><td>Abstract, CV</td></tr>
+      <tr><td>It combines image-processing techniques with a deep-learning model: three image-processing stages followed by a verification model.</td><td>Abstract, CV</td></tr>
+      <tr><td>An image moves from one stage to the next only if pre-defined conditions are met. The abstract says this saves processing time and computing resources.</td><td>Abstract</td></tr>
+      <tr><td>Several classifiers were tried by trial and error; ResNet-50, a convolutional classifier, was chosen for the final validation of results.</td><td>Abstract</td></tr>
+      <tr><td>A global accuracy of 100% is reported, with a scan time described as reasonable and suitable for real-time use.</td><td>Abstract, CV</td></tr>
+    </tbody>
+  </table></div>
+  <h3 style="margin-top:24px">What is not public</h3>
+  <div class="card">
+    <p style="margin-top:0"><span class="status gap">Gap</span> The public record does not say what the three stages actually do, which colour spaces or thresholds were used, what the &ldquo;pre-defined conditions&rdquo; are, how many images the dataset holds, how it was split, whether images were taken in a lab or in the field, how ResNet-50 was trained or what its input and classes were, or how &ldquo;global accuracy&rdquo; was measured. This page does not guess at any of these.</p>
+  </div>
+</div></section>
+
+<section id="pipeline"><div class="wrap">
+  <h2>Stage-by-stage walkthrough</h2>
+  <p>The abstract describes a <strong>cascade</strong>: three image-processing stages, then a ResNet-50 verifier. Select a step to see what is publicly known about it.</p>
+  <ol class="chain" id="chain" aria-label="Pipeline steps"></ol>
+  <div class="card detail" id="chainDetail" aria-live="polite"></div>
+
+  <h3 style="margin-top:28px">Why a cascade saves work</h3>
+  <p class="illus">Illustrative example, not the paper&rsquo;s implementation</p>
+  <fieldset>
+    <legend>Pretend this image is rejected at&hellip;</legend>
+    <label><input type="radio" name="reject" value="0" checked> Nowhere (it passes every gate)</label>
+    <label><input type="radio" name="reject" value="1"> Stage 1</label>
+    <label><input type="radio" name="reject" value="2"> Stage 2</label>
+    <label><input type="radio" name="reject" value="3"> Stage 3</label>
+  </fieldset>
+  <div class="readout" id="cascadeOut" role="status"></div>
+</div></section>
+
+<section id="demo"><div class="wrap">
+  <h2>Interactive demo: finding colour candidates</h2>
+  <p class="illus">Illustrative example, not the paper&rsquo;s implementation</p>
+  <p>The paper&rsquo;s stages are not public, so this demo does <em>not</em> claim to reproduce them. It shows three standard techniques that image-processing pipelines commonly use: <strong>HSV colour thresholding</strong>, <strong>morphological clean-up</strong> and <strong>blob filtering by size</strong>. It runs on a cartoon vine scene drawn by code (green leaves, a brown branch, green berries, a few red-orange berries, and one reddish dry leaf as a look-alike). Change the sliders and the masks update live.</p>
+
+  <div class="views">
+    <figure><canvas id="cvScene" width="200" height="150" role="img" aria-label="Synthetic vine scene"></canvas><figcaption>1. Synthetic scene</figcaption></figure>
+    <figure><canvas id="cvRaw" width="200" height="150" role="img" aria-label="Colour threshold mask"></canvas><figcaption>2. Colour mask (HSV)</figcaption></figure>
+    <figure><canvas id="cvClean" width="200" height="150" role="img" aria-label="Mask after clean-up"></canvas><figcaption>3. After clean-up and size filter</figcaption></figure>
+    <figure><canvas id="cvOver" width="200" height="150" role="img" aria-label="Scene with candidate boxes"></canvas><figcaption>4. Candidate boxes</figcaption></figure>
+  </div>
+  <p class="readout" id="demoOut" role="status" aria-live="polite" style="margin-top:12px"></p>
+
+  <div class="btnrow">
+    <button class="btn" id="newScene" type="button">New scene</button>
+    <button class="btn" id="presetDefault" type="button">Reset sliders</button>
+    <button class="btn" id="presetLoose" type="button">Preset: too loose</button>
+    <button class="btn" id="presetNoClean" type="button">Preset: no clean-up</button>
+  </div>
+
+  <div class="controls">
+    <div class="ctl">
+      <label for="hMin">Hue from <output id="hMinO"></output></label>
+      <input id="hMin" type="range" min="0" max="360" step="1">
+      <label for="hMax" style="margin-top:6px">Hue to <output id="hMaxO"></output></label>
+      <input id="hMax" type="range" min="0" max="360" step="1">
+      <div class="huebar" aria-hidden="true"><i id="hueSel1"></i><i id="hueSel2"></i></div>
+      <small style="color:var(--muted)">If &ldquo;from&rdquo; is larger than &ldquo;to&rdquo;, the range wraps through red (0&deg;/360&deg;).</small>
+    </div>
+    <div>
+      <div class="ctl"><label for="sMin">Minimum saturation <output id="sMinO"></output></label><input id="sMin" type="range" min="0" max="100" step="1"></div>
+      <div class="ctl"><label for="vMin">Minimum brightness (value) <output id="vMinO"></output></label><input id="vMin" type="range" min="0" max="100" step="1"></div>
+    </div>
+    <div class="ctl">
+      <label for="op">Clean-up operation</label>
+      <select id="op">
+        <option value="none">None</option>
+        <option value="open">Opening (removes specks)</option>
+        <option value="close">Closing (fills small holes)</option>
+        <option value="open+close">Opening then closing</option>
+      </select>
+      <label for="radius" style="margin-top:6px">Clean-up size (radius) <output id="radiusO"></output></label>
+      <input id="radius" type="range" min="0" max="5" step="1">
+    </div>
+    <div class="ctl">
+      <label for="minArea">Smallest blob kept (pixels) <output id="minAreaO"></output></label>
+      <input id="minArea" type="range" min="0" max="150" step="1">
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>What to try</h3>
+      <ul class="plain">
+        <li>Widen the hue range or lower the brightness: the brown branch and the dry leaf join the mask. Colour alone cannot always tell them from fruit.</li>
+        <li>Switch clean-up off: isolated speckles and small holes in berries appear. Opening removes specks; closing fills holes.</li>
+        <li>Raise the smallest blob size to discard what is left of the noise.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Candidates handed on</h3>
+      <p class="illus">Illustrative example, not the paper&rsquo;s implementation</p>
+      <div class="crops" id="crops" aria-label="Candidate crops from the demo scene"></div>
+      <p style="font-size:.9rem;color:var(--muted);margin-bottom:0">In a cascade, each candidate crop would go to a verifier. No classifier runs on this page, so no crop is labelled.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="resnet"><div class="wrap">
+  <h2>ResNet-50 as a verifier</h2>
+  <p class="illus">Illustrative example, not the paper&rsquo;s implementation</p>
+  <p>The abstract says ResNet-50 was used for the final validation. A verifier is a second-stage classifier: cheap earlier steps propose candidate regions, and a stronger model confirms or rejects each one. Below is the standard ResNet-50 architecture from He, Zhang, Ren and Sun, &ldquo;Deep Residual Learning for Image Recognition,&rdquo; CVPR 2016 (<a href="https://doi.org/10.1109/CVPR.2016.90">10.1109/CVPR.2016.90</a>). Select a block to read about it. The sizes shown are the standard 224&times;224 ImageNet configuration, not a statement about the paper&rsquo;s setup.</p>
+  <div class="grid2">
+    <div>
+      <ol class="layer" id="layers" aria-label="ResNet-50 layers, input to output"></ol>
+    </div>
+    <div>
+      <div class="card detail" id="layerDetail" aria-live="polite"></div>
+      <figure style="margin:16px 0 0">
+        <svg viewBox="0 0 320 190" role="img" aria-labelledby="resT resD" style="width:100%;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px">
+          <title id="resT">A residual bottleneck block</title>
+          <desc id="resD">The input x goes through three convolutions (1 by 1, 3 by 3, 1 by 1). A skip connection carries x around them, and the two paths are added to give the output.</desc>
+          <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+          <g style="color:var(--ink)" fill="none" stroke="currentColor" stroke-width="1.6">
+            <text x="10" y="98" fill="currentColor" stroke="none" font-size="14">x</text>
+            <path d="M24 94H44" marker-end="url(#ah)"/>
+            <rect x="46" y="76" width="62" height="36" rx="6" fill="var(--surface2)"/><text x="77" y="98" text-anchor="middle" fill="currentColor" stroke="none" font-size="12">1&times;1</text>
+            <path d="M108 94H124" marker-end="url(#ah)"/>
+            <rect x="126" y="76" width="62" height="36" rx="6" fill="var(--surface2)"/><text x="157" y="98" text-anchor="middle" fill="currentColor" stroke="none" font-size="12">3&times;3</text>
+            <path d="M188 94H204" marker-end="url(#ah)"/>
+            <rect x="206" y="76" width="62" height="36" rx="6" fill="var(--surface2)"/><text x="237" y="98" text-anchor="middle" fill="currentColor" stroke="none" font-size="12">1&times;1</text>
+            <path d="M268 94H282" marker-end="url(#ah)"/>
+            <circle cx="294" cy="94" r="11" fill="var(--surface)"/><text x="294" y="99" text-anchor="middle" fill="currentColor" stroke="none" font-size="16">+</text>
+            <path d="M34 94V40H294V81" stroke="var(--green)" stroke-width="2.4" marker-end="url(#ah)"/>
+            <text x="164" y="32" text-anchor="middle" fill="var(--green)" stroke="none" font-size="12">skip connection: carries x unchanged</text>
+            <text x="160" y="150" text-anchor="middle" fill="currentColor" stroke="none" font-size="13">output = F(x) + x</text>
+            <text x="160" y="172" text-anchor="middle" fill="currentColor" stroke="none" font-size="11" opacity=".75">F = the three convolutions (each with normalisation and ReLU)</text>
+          </g>
+        </svg>
+        <figcaption style="font-size:.85rem;color:var(--muted);margin-top:4px">Standard residual bottleneck block (public architecture; redrawn here).</figcaption>
+      </figure>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <p style="margin-top:0"><span class="status reported">Stated in abstract</span> ResNet-50 was picked after trying other classifiers, for its speed and accuracy, and used to validate the final results.</p>
+    <p style="margin-bottom:0"><span class="status gap">Gap</span> Not public: whether the network was trained from scratch or started from pre-trained weights, the input size, the classes, the training and test split, and the confidence rule.</p>
+  </div>
+</div></section>
+
+<section id="result"><div class="wrap">
+  <h2>The reported result</h2>
+  <div class="result">
+    <p style="margin-top:0"><span class="status reported">Reported (paper abstract, CV)</span></p>
+    <p class="num" aria-label="100 percent global accuracy">100%</p>
+    <p class="big" style="margin:.2em 0">global accuracy</p>
+    <p><strong>Reported in the paper (not reproduced here).</strong> The abstract also describes the scan time as reasonable for real-time use. This page runs no recognition model and measures no accuracy of its own.</p>
+  </div>
+  <p style="margin-top:14px">Reading the number: the size and composition of the test set, how &ldquo;global accuracy&rdquo; is defined, and the shooting conditions are not stated publicly, so the figure cannot be put in context from public sources alone.</p>
+</div></section>
+
+<section id="limits"><div class="wrap">
+  <h2>Limitations</h2>
+  <ul class="plain">
+    <li><strong>One crop.</strong> The image set is of black pepper only. Behaviour on other crops, varieties or growing systems is not addressed in the public abstract.</li>
+    <li><strong>Capture conditions.</strong> Whether images were taken in a laboratory or in the field, and under what lighting, is not stated in the public sources.</li>
+    <li><strong>A single headline number.</strong> A global accuracy of 100% on one dataset is a strong claim; without the test-set size and a breakdown by class (precision, recall) it is hard to interpret.</li>
+    <li><strong>2019 methods.</strong> The work predates today&rsquo;s end-to-end detectors and segmentation models.</li>
+    <li><strong>Nothing to reproduce.</strong> The dataset and code are not released, so the result cannot be independently re-run.</li>
+    <li><strong>This explainer.</strong> The demos use cartoon images and generic techniques. They illustrate ideas; they do not test, confirm or approximate the paper&rsquo;s results.</li>
+  </ul>
+</div></section>
+
+<section id="future"><div class="wrap">
+  <h2>Future scope</h2>
+  <p style="color:var(--muted)">These are suggestions made by this explainer, not claims from the paper.</p>
+  <div class="grid2">
+    <div class="card"><h3>Modern detectors</h3><p>One-stage and transformer detectors, or instance segmentation, can locate spikes and berries directly instead of through hand-built stages, and give boxes or masks with confidence scores.</p></div>
+    <div class="card"><h3>Edge deployment</h3><p>Quantised or distilled models exported to portable runtimes could run on a phone, an embedded board or the harvester itself, keeping latency low without a network connection.</p></div>
+    <div class="card"><h3>Field robustness</h3><p>Evaluating across farms, seasons, lighting and occlusion, and adding depth sensing, would show how the approach holds up outside a single dataset.</p></div>
+    <div class="card"><h3>Richer evaluation</h3><p>Reporting precision, recall and confusion matrices on a published or shared benchmark would make results comparable.</p></div>
+  </div>
+</div></section>
+
+<section id="sources"><div class="wrap">
+  <h2>Sources and gaps</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Sources used</h3>
+      <ul class="plain">
+        <li>Crossref record for DOI <a href="https://doi.org/10.1109/ICACC48162.2019.8986220">10.1109/ICACC48162.2019.8986220</a> (title, authors, venue, pages, 2019).</li>
+        <li>The public abstract, as indexed by Semantic Scholar from the IEEE record.</li>
+        <li>The author&rsquo;s CV and portfolio card (summary wording).</li>
+        <li>He et al., CVPR 2016, for the standard ResNet-50 architecture.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Questions the public record cannot answer</h3>
+      <ul class="plain">
+        <li>What does each of the three stages do, and what are the pass conditions?</li>
+        <li>What counts as &ldquo;harvestable&rdquo; in the paper?</li>
+        <li>Dataset size, splits, capture setting and lighting?</li>
+        <li>How was ResNet-50 trained, and on what input and classes?</li>
+        <li>How is &ldquo;global accuracy&rdquo; defined, and on how many test images?</li>
+        <li>What was the scan time, on which hardware?</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>Credits and citation.</strong> Paper by S. Joseph, N. F. Jane Rose and P. V. Akhil, ICACC 2019, IEEE, pp. 97&ndash;102, DOI <a href="https://doi.org/10.1109/ICACC48162.2019.8986220">10.1109/ICACC48162.2019.8986220</a>. This explainer is an independent educational summary and is not affiliated with or endorsed by IEEE or the conference. Code and data from the paper are not released.</p>
+    <p><strong>License.</strong> Original work on this page &copy; Jane Rose Ferdinant, licensed <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>.</p>
+    <p><strong>Author.</strong> Jane Rose Ferdinant: <a href="https://janeferdinant.vercel.app">portfolio</a> &middot; <a href="https://www.linkedin.com/in/janerosenf/">LinkedIn</a></p>
+  </div>
+</footer>
+
+<script src="js/imageproc.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
