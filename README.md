@@ -8,7 +8,7 @@ This repository is an independent, educational explainer of the published paper 
 
 ## Demo
 
-Open `docs/index.html` in a browser (no build step, no network needed). Once GitHub Pages is on, the page is served from the `docs/` folder of `main`.
+Live page: https://janeferdinant.github.io/black-pepper-recognition/ (GitHub Pages, served from the `docs/` folder of `main`). Or open `docs/index.html` in a browser (no build step, no network needed).
 
 ![Colour-threshold demo at phone width, showing a synthetic vine scene, its colour mask, the cleaned mask and circles on the surviving objects](docs/runs/2026-10-14-demo-390.png)
 
