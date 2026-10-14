@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Harvestable Black Pepper Recognition: Interactive Explainer</title>
-<meta name="description" content="An unofficial interactive explainer of a co-authored IEEE paper on recognising harvestable black pepper with computer vision. Built from the public abstract; demos are illustrative and use synthetic images.">
+<meta name="description" content="An independent interactive explainer of a co-authored, published IEEE paper on recognising harvestable black pepper: three gated stages ending in ResNet-50, how its accuracy was defined, and where the paper is unclear. No paper data, figures or code are included.">
 <meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
 <style>
 :root{
   --bg:#f6f1e7; --surface:#fffdf8; --surface2:#efe8d8; --ink:#1c2a20; --muted:#55604f;
@@ -47,6 +48,14 @@ section{padding:36px 0;border-bottom:1px solid var(--line)}
 .status{display:inline-block;font-size:.78rem;font-weight:600;border-radius:999px;padding:2px 9px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);white-space:nowrap}
 .status.reported{border-color:var(--green);color:var(--green)}
 .status.gap{border-color:var(--red);color:var(--red)}
+.status.unclear{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.pg{color:var(--muted);font-size:.85em;white-space:nowrap}
+.numgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin:12px 0}
+@media (min-width:700px){.numgrid{grid-template-columns:repeat(4,1fr)}}
+.numgrid label{display:block;font-weight:600;font-size:.92rem}
+.numgrid input[type=number]{font:inherit;width:100%;padding:8px;border-radius:8px;border:2px solid var(--line);background:var(--surface);color:var(--ink);min-height:44px}
+.checkrow{display:flex;align-items:center;gap:10px;padding:6px 0;min-height:44px}
+.checkrow input{width:22px;height:22px;accent-color:var(--green)}
 .grid2{display:grid;gap:16px;grid-template-columns:1fr}
 @media (min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
 table{border-collapse:collapse;width:100%;font-size:.95rem}
@@ -91,9 +100,6 @@ fieldset label{display:block;padding:4px 0}
 .btn:hover{background:var(--green);color:var(--green-ink)}
 .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .readout{font-variant-numeric:tabular-nums;background:var(--surface2);border-radius:8px;padding:10px 12px;font-size:.95rem}
-.crops{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-.crops figure{margin:0;text-align:center;font-size:.75rem;color:var(--muted)}
-.crops canvas{width:64px;height:64px;image-rendering:pixelated;border:1px solid var(--line);border-radius:4px;display:block}
 /* resnet */
 .layer{display:grid;gap:6px;margin:0;padding:0;list-style:none}
 .layer .bar{display:block;height:8px;border-radius:4px;background:var(--green);margin-top:6px}
@@ -112,25 +118,26 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
 
 <header class="hero">
   <div class="wrap">
-    <p class="eyebrow">Unofficial interactive explainer</p>
+    <p class="eyebrow">Independent interactive explainer</p>
     <h1>Harvestable Black Pepper Recognition Using Computer Vision</h1>
-    <p class="lede">How can a camera tell pepper that is ready to pick from leaves, branches and unripe berries? This page explains the idea behind a co-authored IEEE conference paper, using only what is publicly stated, plus clearly labelled illustrative demos.</p>
+    <p class="lede">How can a camera tell pepper that is ready to pick from leaves, branches and unripe berries? This page explains the method of a published, co-authored IEEE conference paper in plain language: what the three stages do, how ResNet-50 is used, how &ldquo;global accuracy&rdquo; is defined, and where the paper is unclear.</p>
     <div class="card" style="margin-top:16px">
       <p style="margin-top:0"><strong>Paper.</strong> S. Joseph, N. F. Jane Rose and P. V. Akhil, &ldquo;Harvestable Black Pepper Recognition Using Computer Vision,&rdquo; <em>2019 9th International Conference on Advances in Computing and Communication (ICACC)</em>, Kochi, India, IEEE, 2019, pp. 97&ndash;102.
       DOI: <a href="https://doi.org/10.1109/ICACC48162.2019.8986220">10.1109/ICACC48162.2019.8986220</a></p>
-      <p style="margin-bottom:0"><strong>Co-authors.</strong> Shelbi Joseph, N. F. Jane Rose (Jane Rose Ferdinant) and P. V. Akhil. This page credits all three; it was prepared by Jane Rose Ferdinant.</p>
+      <p style="margin-bottom:0"><strong>Authors.</strong> Jane Rose N. F. (Jane Rose Ferdinant), Shelbi Joseph and Akhil Vijayan (listed as P. V. Akhil in the IEEE record). This page credits all three; it was prepared by Jane Rose Ferdinant. Page numbers such as <span class="pg">p.&nbsp;5</span> refer to the paper&rsquo;s own pages.</p>
     </div>
-    <p class="notice" style="margin-top:16px"><strong>Code and data are not released.</strong> This repository contains no code, dataset, images, figures or text from the paper. Every demo below runs on synthetic images generated in your browser and is labelled <em>Illustrative example, not the paper&rsquo;s implementation</em>.</p>
+    <p class="notice" style="margin-top:16px"><strong>An explainer of the published method only.</strong> This repository contains no code, dataset, images, figures, tables or text from the paper, and the paper&rsquo;s code and data are not released. Everything is described in the explainer&rsquo;s own words. Demos run on synthetic images generated in your browser and are labelled <em>Illustrative, not the paper&rsquo;s implementation</em>.</p>
   </div>
 </header>
 
 <nav class="toc" aria-label="On this page">
   <div class="wrap"><ul>
     <li><a href="#problem">The problem</a></li>
-    <li><a href="#public">What is public</a></li>
-    <li><a href="#pipeline">Pipeline</a></li>
-    <li><a href="#demo">Segmentation demo</a></li>
-    <li><a href="#resnet">ResNet-50 verifier</a></li>
+    <li><a href="#glance">At a glance</a></li>
+    <li><a href="#pipeline">The three stages</a></li>
+    <li><a href="#demo">Thresholding demo</a></li>
+    <li><a href="#resnet">ResNet-50</a></li>
+    <li><a href="#metric">Defining accuracy</a></li>
     <li><a href="#result">Reported result</a></li>
     <li><a href="#limits">Limitations</a></li>
     <li><a href="#future">Future scope</a></li>
@@ -141,76 +148,81 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
 <main id="main">
 
 <section id="problem"><div class="wrap">
-  <h2>The problem: what does &ldquo;harvestable&rdquo; mean?</h2>
+  <h2>The problem: finding pepper that is ready to pick</h2>
   <div class="grid2">
     <div>
-      <p>Black pepper grows as hanging spikes of small round berries on a climbing vine. Growers pick a spike when its berries have reached the right stage of maturity, which is usually judged by eye. In general horticultural guidance, picking begins once a berry or two on a spike has started to change colour from green towards yellow or red, while the rest are still firm (see, for example, the general-reference summary on <a href="https://en.wikipedia.org/wiki/Black_pepper">Wikipedia</a>).</p>
-      <p><span class="status gap">Gap</span> The paper&rsquo;s own working definition of &ldquo;harvestable&rdquo; is not available in the public abstract, so this page does not claim one for the paper.</p>
+      <p>Black pepper is closely tied to Kerala, in south-west India. The authors note that Kerala is not the largest producer, and they link that in part to a shortage of skilled labour and to the difficulty of spotting harvestable pepper in time <span class="pg">p.&nbsp;1</span>.</p>
+      <p>Their aim is to automate the spotting: given a photograph, say whether harvestable pepper is present and where. They name an automated harvesting drone as the intended use <span class="pg">p.&nbsp;1</span>.</p>
+      <p><span class="status unclear">Not defined</span> The paper does not give a formal definition of &ldquo;harvestable&rdquo;. What it does show is that the first stage looks for the red colour range, and that red and yellow separate well from green in HSV colour space <span class="pg">p.&nbsp;1, 4</span>.</p>
     </div>
     <div class="card">
-      <h3>Why automate recognition?</h3>
+      <h3>Why it is hard</h3>
       <ul class="plain">
-        <li>Ripening is uneven across a vine, so picking can mean repeated, labour-intensive passes.</li>
-        <li>A harvesting robot first has to <em>find</em> pickable spikes among leaves, branches and trunks.</li>
-        <li>The cluttered scene is the hard part: the abstract names leaves, trunks and branches, and unripe pepper as the things to tell apart from harvestable fruit.</li>
+        <li>The scene is a natural canopy: leaves, trunks and branches share the frame with the berries.</li>
+        <li>Unripe pepper has to be told apart from harvestable pepper.</li>
+        <li>Real-time use matters, so the authors design the pipeline so that cheap checks run first and expensive ones only when needed <span class="pg">p.&nbsp;1&ndash;2</span>.</li>
       </ul>
-      <p class="meta" style="color:var(--muted);font-size:.9rem">The paper&rsquo;s stated objective is to speed up recognition of harvestable pepper for automated harvesting.</p>
     </div>
   </div>
 </div></section>
 
-<section id="public"><div class="wrap">
-  <h2>What the public sources state</h2>
-  <p>Everything in this table comes from the public abstract (as indexed by Semantic Scholar from the IEEE record) or from the author&rsquo;s CV. It is paraphrased, not quoted at length.</p>
+<section id="glance"><div class="wrap">
+  <h2>The paper at a glance</h2>
+  <p>A summary in this explainer&rsquo;s own words, with the paper page each point comes from. A full claim-to-page list is in <a href="https://github.com/Janeferdinant/black-pepper-recognition/blob/main/docs/runs/2026-10-14-paper-trace.md">the trace file</a>.</p>
   <div class="tablewrap card"><table>
-    <caption class="sr-only">Statements about the paper and where they come from</caption>
-    <thead><tr><th scope="col">What is stated</th><th scope="col">Source</th></tr></thead>
+    <caption class="sr-only">Summary of the paper and the page each point comes from</caption>
+    <thead><tr><th scope="col">Topic</th><th scope="col">What the paper reports</th><th scope="col">Paper page</th></tr></thead>
     <tbody>
-      <tr><td>The goal is faster recognition of harvestable black pepper, to support automated harvesting.</td><td>Abstract</td></tr>
-      <tr><td>The authors introduce a new black-pepper image set captured with a digital camera.</td><td>Abstract, CV</td></tr>
-      <tr><td>The system must separate harvestable pepper from leaves, trunks and branches, and unripe pepper.</td><td>Abstract, CV</td></tr>
-      <tr><td>It combines image-processing techniques with a deep-learning model: three image-processing stages followed by a verification model.</td><td>Abstract, CV</td></tr>
-      <tr><td>An image moves from one stage to the next only if pre-defined conditions are met. The abstract says this saves processing time and computing resources.</td><td>Abstract</td></tr>
-      <tr><td>Several classifiers were tried by trial and error; ResNet-50, a convolutional classifier, was chosen for the final validation of results.</td><td>Abstract</td></tr>
-      <tr><td>A global accuracy of 100% is reported, with a scan time described as reasonable and suitable for real-time use.</td><td>Abstract, CV</td></tr>
+      <tr><th scope="row">Images</th><td>A new image set of black pepper, taken with an ordinary digital camera in natural canopies in Kerala. The network was trained on more than 500 of its images.</td><td>1, 2, 7</td></tr>
+      <tr><th scope="row">Method</th><td>Pre-processing, then three stages with a go/stop gate after each: red-colour segmentation in HSV; morphological clean-up and circle counting; a ResNet-50 classifier.</td><td>2</td></tr>
+      <tr><th scope="row">Classifier choice</th><td>ResNet-50 was picked after comparing ResNet-101, GoogLeNet, AlexNet and an SVM-based classifier on accuracy and run time.</td><td>6</td></tr>
+      <tr><th scope="row">Test</th><td>115 test images, 65 with harvestable pepper and 50 without. The complete system got every one right.</td><td>6, 7</td></tr>
+      <tr><th scope="row">Headline</th><td>&ldquo;Global accuracy&rdquo; of 100%, the accuracy of the whole three-stage system, not of the classifier alone.</td><td>5, 7</td></tr>
+      <tr><th scope="row">Platform</th><td>MATLAB R2018b on one computer with an Intel i5 processor, 16 GB of RAM and an NVIDIA GTX 1080 GPU.</td><td>6</td></tr>
+      <tr><th scope="row">Next steps</th><td>Video input, automatic cutting-point finding, ground or aerial vehicles with a cutter, a farmer-facing mobile app.</td><td>7</td></tr>
     </tbody>
   </table></div>
-  <h3 style="margin-top:24px">What is not public</h3>
-  <div class="card">
-    <p style="margin-top:0"><span class="status gap">Gap</span> The public record does not say what the three stages actually do, which colour spaces or thresholds were used, what the &ldquo;pre-defined conditions&rdquo; are, how many images the dataset holds, how it was split, whether images were taken in a lab or in the field, how ResNet-50 was trained or what its input and classes were, or how &ldquo;global accuracy&rdquo; was measured. This page does not guess at any of these.</p>
-  </div>
 </div></section>
 
 <section id="pipeline"><div class="wrap">
-  <h2>Stage-by-stage walkthrough</h2>
-  <p>The abstract describes a <strong>cascade</strong>: three image-processing stages, then a ResNet-50 verifier. Select a step to see what is publicly known about it.</p>
+  <h2>The three stages, one gate at a time</h2>
+  <p>Before the stages, each photograph is cleaned up. Then it passes through three stages. After each stage the system checks a condition and either carries on or stops with the answer &ldquo;no harvestable pepper&rdquo;. Select a step to read what the paper says about it.</p>
   <ol class="chain" id="chain" aria-label="Pipeline steps"></ol>
   <div class="card detail" id="chainDetail" aria-live="polite"></div>
 
-  <h3 style="margin-top:28px">Why a cascade saves work</h3>
-  <p class="illus">Illustrative example, not the paper&rsquo;s implementation</p>
-  <fieldset>
-    <legend>Pretend this image is rejected at&hellip;</legend>
-    <label><input type="radio" name="reject" value="0" checked> Nowhere (it passes every gate)</label>
-    <label><input type="radio" name="reject" value="1"> Stage 1</label>
-    <label><input type="radio" name="reject" value="2"> Stage 2</label>
-    <label><input type="radio" name="reject" value="3"> Stage 3</label>
-  </fieldset>
+  <h3 style="margin-top:28px">Try the gates</h3>
+  <p class="illus">Illustrative, not the paper&rsquo;s implementation</p>
+  <p>This explorer applies the gate logic the paper describes to values you choose. It never looks at an image. Steps that would be skipped are struck through above. The paper&rsquo;s prose and its pseudo-code disagree about the stage-2 gate, so you can try both readings <span class="pg">p.&nbsp;1, 6</span>.</p>
+  <div class="grid2">
+    <fieldset>
+      <legend>What each stage finds</legend>
+      <div class="checkrow"><input type="checkbox" id="gRed" checked><label for="gRed">Stage 1 finds pixels in the red range</label></div>
+      <div class="ctl"><label for="gCircles">Stage 2: circles drawn <output id="gCirclesO"></output></label>
+        <input id="gCircles" type="range" min="0" max="6" step="1" value="3"></div>
+      <div class="checkrow"><input type="checkbox" id="gPepper" checked><label for="gPepper">Stage 3: ResNet-50 says &ldquo;pepper&rdquo;</label></div>
+    </fieldset>
+    <fieldset>
+      <legend>Which stage-2 rule?</legend>
+      <label><input type="radio" name="gate2" value="text" checked> Prose: stop when there are no circles</label>
+      <label><input type="radio" name="gate2" value="pseudocode"> Pseudo-code: stop when there is one circle or none</label>
+    </fieldset>
+  </div>
   <div class="readout" id="cascadeOut" role="status"></div>
 </div></section>
 
 <section id="demo"><div class="wrap">
-  <h2>Interactive demo: finding colour candidates</h2>
-  <p class="illus">Illustrative example, not the paper&rsquo;s implementation</p>
-  <p>The paper&rsquo;s stages are not public, so this demo does <em>not</em> claim to reproduce them. It shows three standard techniques that image-processing pipelines commonly use: <strong>HSV colour thresholding</strong>, <strong>morphological clean-up</strong> and <strong>blob filtering by size</strong>. It runs on a cartoon vine scene drawn by code (green leaves, a brown branch, green berries, a few red-orange berries, and one reddish dry leaf as a look-alike). Change the sliders and the masks update live.</p>
+  <h2>Interactive demo: colour thresholding and clean-up</h2>
+  <p class="illus">Illustrative, not the paper&rsquo;s implementation</p>
+  <p>Stages 1 and 2 are the part of the paper that can be shown without its data. The demo below runs the same kinds of operations the paper names, on a cartoon vine scene drawn by code: a colour threshold in HSV, morphological clean-up, a minimum object size, and a circle around each surviving object. It uses none of the paper&rsquo;s images, its colour ranges, or its numbers. Move the sliders and the masks update live.</p>
 
   <div class="views">
     <figure><canvas id="cvScene" width="200" height="150" role="img" aria-label="Synthetic vine scene"></canvas><figcaption>1. Synthetic scene</figcaption></figure>
     <figure><canvas id="cvRaw" width="200" height="150" role="img" aria-label="Colour threshold mask"></canvas><figcaption>2. Colour mask (HSV)</figcaption></figure>
     <figure><canvas id="cvClean" width="200" height="150" role="img" aria-label="Mask after clean-up"></canvas><figcaption>3. After clean-up and size filter</figcaption></figure>
-    <figure><canvas id="cvOver" width="200" height="150" role="img" aria-label="Scene with candidate boxes"></canvas><figcaption>4. Candidate boxes</figcaption></figure>
+    <figure><canvas id="cvOver" width="200" height="150" role="img" aria-label="Scene with candidate circles"></canvas><figcaption>4. Circles on the survivors</figcaption></figure>
   </div>
   <p class="readout" id="demoOut" role="status" aria-live="polite" style="margin-top:12px"></p>
+  <p class="readout" id="gateOut" role="status" aria-live="polite" style="margin-top:8px"></p>
 
   <div class="btnrow">
     <button class="btn" id="newScene" type="button">New scene</button>
@@ -244,7 +256,7 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
       <input id="radius" type="range" min="0" max="5" step="1">
     </div>
     <div class="ctl">
-      <label for="minArea">Smallest blob kept (pixels) <output id="minAreaO"></output></label>
+      <label for="minArea">Smallest object kept (pixels) <output id="minAreaO"></output></label>
       <input id="minArea" type="range" min="0" max="150" step="1">
     </div>
   </div>
@@ -253,24 +265,45 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
     <div class="card">
       <h3>What to try</h3>
       <ul class="plain">
-        <li>Widen the hue range or lower the brightness: the brown branch and the dry leaf join the mask. Colour alone cannot always tell them from fruit.</li>
-        <li>Switch clean-up off: isolated speckles and small holes in berries appear. Opening removes specks; closing fills holes.</li>
-        <li>Raise the smallest blob size to discard what is left of the noise.</li>
+        <li>Widen the hue range or lower the brightness: the brown branch and the dry leaf join the mask. Colour alone cannot always tell them from fruit, which is why the paper adds a shape stage and a classifier.</li>
+        <li>Switch clean-up off: isolated speckles and small holes appear. Opening removes specks; closing fills holes.</li>
+        <li>Raise the smallest object size to discard what is left of the noise, as the paper does with a fixed size cut-off.</li>
       </ul>
     </div>
     <div class="card">
-      <h3>Candidates handed on</h3>
-      <p class="illus">Illustrative example, not the paper&rsquo;s implementation</p>
-      <div class="crops" id="crops" aria-label="Candidate crops from the demo scene"></div>
-      <p style="font-size:.9rem;color:var(--muted);margin-bottom:0">In a cascade, each candidate crop would go to a verifier. No classifier runs on this page, so no crop is labelled.</p>
+      <h3>How this differs from the paper</h3>
+      <ul class="plain">
+        <li>The paper pre-processes with guided filtering, local Laplacian filtering and histogram equalisation first; the demo does not.</li>
+        <li>The paper&rsquo;s red range and its 60-pixel size cut-off apply to its own 300&times;400 images <span class="pg">p.&nbsp;5, 6</span>; the demo&rsquo;s defaults are tuned to a small cartoon.</li>
+        <li>In the paper, ResNet-50 is then given the input image. No classifier runs here.</li>
+      </ul>
     </div>
   </div>
 </div></section>
 
 <section id="resnet"><div class="wrap">
-  <h2>ResNet-50 as a verifier</h2>
-  <p class="illus">Illustrative example, not the paper&rsquo;s implementation</p>
-  <p>The abstract says ResNet-50 was used for the final validation. A verifier is a second-stage classifier: cheap earlier steps propose candidate regions, and a stronger model confirms or rejects each one. Below is the standard ResNet-50 architecture from He, Zhang, Ren and Sun, &ldquo;Deep Residual Learning for Image Recognition,&rdquo; CVPR 2016 (<a href="https://doi.org/10.1109/CVPR.2016.90">10.1109/CVPR.2016.90</a>). Select a block to read about it. The sizes shown are the standard 224&times;224 ImageNet configuration, not a statement about the paper&rsquo;s setup.</p>
+  <h2>ResNet-50 as the last gate</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>How the paper uses it</h3>
+      <ul class="plain">
+        <li>It is stage 3, the last gate. If the earlier gates let an image through, ResNet-50 decides &ldquo;pepper&rdquo; or &ldquo;not pepper&rdquo; for the input image <span class="pg">p.&nbsp;1, 5</span>.</li>
+        <li>It was trained on more than 500 images from the new image set <span class="pg">p.&nbsp;1, 5</span>.</li>
+        <li>The paper&rsquo;s pseudo-code loads a pre-trained network, takes features from one of its convolutional layers, trains a classifier on them, and then predicts <span class="pg">p.&nbsp;6</span>. The prose speaks of training through feature extraction and deep learning.</li>
+        <li>It was chosen by comparison with ResNet-101, GoogLeNet, AlexNet and an SVM-based classifier. ResNet-50 had the best balance of accuracy and run time; ResNet-101 was slightly less accurate <span class="pg">p.&nbsp;6</span>.</li>
+        <li>Used alone, the classifier&rsquo;s accuracy is reported as 96.35% in the paper&rsquo;s table (the prose says 98.44%, see below). Together with the first two gates, the system&rsquo;s accuracy is reported as 100% <span class="pg">p.&nbsp;5</span>.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Why a verifier at the end</h3>
+      <p>Colour and size checks are cheap but fooled by look-alikes such as a reddish dry leaf. A deep network is better at telling look-alikes apart, but costs more per image. Putting it last means it only runs on images that already look promising, which is the saving in time and computing the paper describes <span class="pg">p.&nbsp;2</span>.</p>
+      <p><span class="status unclear">Unclear</span> Whether the network&rsquo;s own weights were updated (fine-tuning) or only used to produce features, the input size it was given, and the training settings are not stated.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:28px">Inside a standard ResNet-50</h3>
+  <p class="illus">Illustrative, not the paper&rsquo;s implementation</p>
+  <p>This panel shows the standard ResNet-50 from He, Zhang, Ren and Sun, &ldquo;Deep Residual Learning for Image Recognition,&rdquo; CVPR 2016 (<a href="https://doi.org/10.1109/CVPR.2016.90">10.1109/CVPR.2016.90</a>). The sizes are the standard 224&times;224 ImageNet configuration, not a statement about the paper&rsquo;s setup. Select a block to read about it.</p>
   <div class="grid2">
     <div>
       <ol class="layer" id="layers" aria-label="ResNet-50 layers, input to output"></ol>
@@ -302,44 +335,86 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
       </figure>
     </div>
   </div>
-  <div class="card" style="margin-top:16px">
-    <p style="margin-top:0"><span class="status reported">Stated in abstract</span> ResNet-50 was picked after trying other classifiers, for its speed and accuracy, and used to validate the final results.</p>
-    <p style="margin-bottom:0"><span class="status gap">Gap</span> Not public: whether the network was trained from scratch or started from pre-trained weights, the input size, the classes, the training and test split, and the confidence rule.</p>
+</div></section>
+
+<section id="metric"><div class="wrap">
+  <h2>How &ldquo;global accuracy&rdquo; is defined</h2>
+  <p>The unit being scored is an <strong>image</strong>, and the thing being scored is the <strong>whole three-stage system</strong>, not any one stage. For each test image the system answers &ldquo;harvestable pepper present&rdquo; or &ldquo;not present&rdquo;, and that answer is compared with the truth <span class="pg">p.&nbsp;6, 7</span>.</p>
+  <div class="tablewrap card"><table>
+    <caption class="sr-only">The four possible outcomes for one test image</caption>
+    <thead><tr><th scope="col">Truth \ system says</th><th scope="col">Present</th><th scope="col">Not present</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Pepper really there</th><td>True positive (TP)</td><td>False negative (FN)</td></tr>
+      <tr><th scope="row">No pepper</th><td>False positive (FP)</td><td>True negative (TN)</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px">Accuracy is the share of images the system got right: (TP + TN) divided by all images. The paper also reports recall (TP over TP + FN), precision (TP over TP + FP) and F1, the harmonic mean of the two <span class="pg">p.&nbsp;5, 7</span>. A global accuracy of 100% therefore means zero false positives and zero false negatives on the test set.</p>
+
+  <h3 style="margin-top:24px">Try the arithmetic</h3>
+  <p class="illus">Illustrative counts, not the paper&rsquo;s results</p>
+  <div class="numgrid">
+    <div><label for="cTP">True positives</label><input id="cTP" type="number" min="0" max="999" step="1" value="8"></div>
+    <div><label for="cFP">False positives</label><input id="cFP" type="number" min="0" max="999" step="1" value="2"></div>
+    <div><label for="cTN">True negatives</label><input id="cTN" type="number" min="0" max="999" step="1" value="7"></div>
+    <div><label for="cFN">False negatives</label><input id="cFN" type="number" min="0" max="999" step="1" value="3"></div>
   </div>
+  <div class="readout" id="metricOut" role="status" aria-live="polite"></div>
+
+  <h3 style="margin-top:24px">Two accuracy numbers, and one inconsistency</h3>
+  <p>The paper reports accuracy at two levels. The <strong>classifier alone</strong> (stage 3 by itself) and the <strong>whole system</strong> (&ldquo;global&rdquo;). The paper presents the jump from the classifier&rsquo;s figure to 100% as the result of coupling the classifier with the full three-stage architecture <span class="pg">p.&nbsp;5</span>.</p>
+  <p><span class="status unclear">Ambiguous</span> For the classifier alone, the text gives 98.44% while the paper&rsquo;s table gives 96.35% <span class="pg">p.&nbsp;5</span>. Averaging the two diagonal entries of the paper&rsquo;s confusion-matrix table reproduces the table figure, so that one looks the more consistent. The printed accuracy formula is also missing brackets, and the table&rsquo;s error cells are labelled in an unusual way. None of this affects the 115-of-115 system result, but a reader should know.</p>
 </div></section>
 
 <section id="result"><div class="wrap">
   <h2>The reported result</h2>
   <div class="result">
-    <p style="margin-top:0"><span class="status reported">Reported (paper abstract, CV)</span></p>
+    <p style="margin-top:0"><span class="status reported">Reported in the paper</span> <span class="pg">p.&nbsp;5&ndash;7</span></p>
     <p class="num" aria-label="100 percent global accuracy">100%</p>
     <p class="big" style="margin:.2em 0">global accuracy</p>
-    <p><strong>Reported in the paper (not reproduced here).</strong> The abstract also describes the scan time as reasonable for real-time use. This page runs no recognition model and measures no accuracy of its own.</p>
+    <p><strong>Reported in the paper (not reproduced here).</strong> Definition: the share of 115 test images, 65 with harvestable pepper and 50 without, that the complete three-stage system classified correctly. The paper reports 115 of 115, with recall and precision both at 100%. This page runs no recognition model and measures no accuracy of its own.</p>
+    <p style="margin-bottom:0"><strong>Scan time.</strong> The paper describes the scan time as reasonable for real-time use <span class="pg">p.&nbsp;1, 6</span> but gives no figure for the full system.</p>
   </div>
-  <p style="margin-top:14px">Reading the number: the size and composition of the test set, how &ldquo;global accuracy&rdquo; is defined, and the shooting conditions are not stated publicly, so the figure cannot be put in context from public sources alone.</p>
+  <h3 style="margin-top:24px">Reading the number</h3>
+  <ul class="plain">
+    <li>It is a statement about 115 images. The paper does not say whether the test images were kept apart from the training images <span class="pg">p.&nbsp;5&ndash;7</span>.</li>
+    <li><span class="status unclear">Derived here</span> Zero errors in 115 trials is consistent with a true error rate of up to roughly <strong id="boundOut">2.6%</strong> (one-sided 95% bound, about 3 divided by 115). That is this explainer&rsquo;s arithmetic on the reported count, not a result from the paper.</li>
+  </ul>
 </div></section>
 
 <section id="limits"><div class="wrap">
   <h2>Limitations</h2>
+  <h3>What the paper itself says</h3>
+  <p>The paper has no limitations section. Its closest statements are that a high-performance GPU and processor are desirable <span class="pg">p.&nbsp;2, 3</span>, and the future-work list (below), which implies the system currently works on still images, finds no cutting point, and has not been shown running on a vehicle.</p>
+  <h3 style="margin-top:20px">Points a careful reader would raise (this explainer&rsquo;s notes, not the paper&rsquo;s)</h3>
   <ul class="plain">
-    <li><strong>One crop.</strong> The image set is of black pepper only. Behaviour on other crops, varieties or growing systems is not addressed in the public abstract.</li>
-    <li><strong>Capture conditions.</strong> Whether images were taken in a laboratory or in the field, and under what lighting, is not stated in the public sources.</li>
-    <li><strong>A single headline number.</strong> A global accuracy of 100% on one dataset is a strong claim; without the test-set size and a breakdown by class (precision, recall) it is hard to interpret.</li>
-    <li><strong>2019 methods.</strong> The work predates today&rsquo;s end-to-end detectors and segmentation models.</li>
+    <li><strong>Small test set.</strong> 115 images is a modest sample, and a perfect score on it carries real uncertainty (see the bound above).</li>
+    <li><strong>Train and test overlap not stated.</strong> If test images came from the same scenes as training images, the score would be optimistic.</li>
+    <li><strong>Capture conditions.</strong> Natural canopies in Kerala are stated, but lighting, time of day, camera settings and distance are not. One crop, one region.</li>
+    <li><strong>Internal inconsistencies.</strong> Two different classifier-only accuracies, and a stage-2 gate that differs between prose and pseudo-code.</li>
+    <li><strong>Training detail is thin.</strong> Fine-tuning versus feature extraction, the input size, and the training settings are not given.</li>
+    <li><strong>Speed is asserted, not quantified.</strong> There is a per-classifier timing chart but no end-to-end scan time.</li>
+    <li><strong>Comparison with earlier systems</strong> is made in words, not on a shared image set <span class="pg">p.&nbsp;6</span>.</li>
     <li><strong>Nothing to reproduce.</strong> The dataset and code are not released, so the result cannot be independently re-run.</li>
-    <li><strong>This explainer.</strong> The demos use cartoon images and generic techniques. They illustrate ideas; they do not test, confirm or approximate the paper&rsquo;s results.</li>
+    <li><strong>2019 methods.</strong> The work predates today&rsquo;s end-to-end detectors and segmentation models.</li>
+    <li><strong>This explainer.</strong> Its demos use cartoon images and generic techniques. They illustrate ideas; they do not test, confirm or approximate the paper&rsquo;s results.</li>
   </ul>
 </div></section>
 
 <section id="future"><div class="wrap">
   <h2>Future scope</h2>
-  <p style="color:var(--muted)">These are suggestions made by this explainer, not claims from the paper.</p>
+  <h3>From the paper <span class="pg">p.&nbsp;7</span></h3>
   <div class="grid2">
-    <div class="card"><h3>Modern detectors</h3><p>One-stage and transformer detectors, or instance segmentation, can locate spikes and berries directly instead of through hand-built stages, and give boxes or masks with confidence scores.</p></div>
-    <div class="card"><h3>Edge deployment</h3><p>Quantised or distilled models exported to portable runtimes could run on a phone, an embedded board or the harvester itself, keeping latency low without a network connection.</p></div>
-    <div class="card"><h3>Field robustness</h3><p>Evaluating across farms, seasons, lighting and occlusion, and adding depth sensing, would show how the approach holds up outside a single dataset.</p></div>
-    <div class="card"><h3>Richer evaluation</h3><p>Reporting precision, recall and confusion matrices on a published or shared benchmark would make results comparable.</p></div>
+    <div class="card"><h3>Live video</h3><p>Work on video streams rather than still images, for real-time identification and picking.</p></div>
+    <div class="card"><h3>Cutting point</h3><p>Automate finding where to cut, so that harvesting itself can be automated.</p></div>
+    <div class="card"><h3>Vehicles</h3><p>Mount the system on unmanned ground or aerial vehicles that record high-quality video and carry a cutting mechanism.</p></div>
+    <div class="card"><h3>Mobile app</h3><p>A phone app that farmers can use directly for yield estimation and harvesting.</p></div>
   </div>
+  <h3 style="margin-top:24px">Suggestions from this explainer (not from the paper)</h3>
+  <ul class="plain">
+    <li>Modern one-stage or transformer detectors and instance segmentation can locate spikes directly, with boxes or masks and confidence scores.</li>
+    <li>Quantised or distilled models on a phone or embedded board would remove the need for a desktop GPU.</li>
+    <li>Evaluating across farms, seasons and lighting, with a published split and per-class precision and recall, would make results comparable.</li>
+  </ul>
 </div></section>
 
 <section id="sources"><div class="wrap">
@@ -348,21 +423,21 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
     <div class="card">
       <h3>Sources used</h3>
       <ul class="plain">
-        <li>Crossref record for DOI <a href="https://doi.org/10.1109/ICACC48162.2019.8986220">10.1109/ICACC48162.2019.8986220</a> (title, authors, venue, pages, 2019).</li>
-        <li>The public abstract, as indexed by Semantic Scholar from the IEEE record.</li>
-        <li>The author&rsquo;s CV and portfolio card (summary wording).</li>
+        <li>The published paper itself (a copy supplied by a co-author). It is not included in this repository.</li>
+        <li>Crossref record for DOI <a href="https://doi.org/10.1109/ICACC48162.2019.8986220">10.1109/ICACC48162.2019.8986220</a> (author form, venue, pages, year). The conference name and city are not printed in the supplied copy.</li>
         <li>He et al., CVPR 2016, for the standard ResNet-50 architecture.</li>
       </ul>
     </div>
     <div class="card">
-      <h3>Questions the public record cannot answer</h3>
+      <h3>Still not answered by the paper</h3>
       <ul class="plain">
-        <li>What does each of the three stages do, and what are the pass conditions?</li>
-        <li>What counts as &ldquo;harvestable&rdquo; in the paper?</li>
-        <li>Dataset size, splits, capture setting and lighting?</li>
-        <li>How was ResNet-50 trained, and on what input and classes?</li>
-        <li>How is &ldquo;global accuracy&rdquo; defined, and on how many test images?</li>
-        <li>What was the scan time, on which hardware?</li>
+        <li>A formal definition of &ldquo;harvestable&rdquo;.</li>
+        <li>Whether the 500+ images are the whole set or only the training part, how it was split, and whether test images overlap training images.</li>
+        <li>Lighting, camera model, resolution and other capture details; whether the set is available.</li>
+        <li>Whether ResNet-50 was fine-tuned or used only for features, its input size, and training settings.</li>
+        <li>Which stage-2 rule was actually run (zero circles, or one or fewer), and the exact red range.</li>
+        <li>An end-to-end scan time.</li>
+        <li>Which of 98.44% and 96.35% is the classifier-only accuracy.</li>
       </ul>
     </div>
   </div>
@@ -373,12 +448,13 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
 <footer>
   <div class="wrap">
     <p><strong>Credits and citation.</strong> Paper by S. Joseph, N. F. Jane Rose and P. V. Akhil, ICACC 2019, IEEE, pp. 97&ndash;102, DOI <a href="https://doi.org/10.1109/ICACC48162.2019.8986220">10.1109/ICACC48162.2019.8986220</a>. This explainer is an independent educational summary and is not affiliated with or endorsed by IEEE or the conference. Code and data from the paper are not released.</p>
-    <p><strong>License.</strong> Original work on this page &copy; Jane Rose Ferdinant, licensed <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>.</p>
+    <p><strong>License.</strong> Original work on this page &copy; Jane Rose Ferdinant, licensed <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>. The paper itself is copyrighted by its publisher and authors.</p>
     <p><strong>Author.</strong> Jane Rose Ferdinant: <a href="https://janeferdinant.vercel.app">portfolio</a> &middot; <a href="https://www.linkedin.com/in/janerosenf/">LinkedIn</a></p>
   </div>
 </footer>
 
 <script src="js/imageproc.js"></script>
+<script src="js/paperlogic.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
