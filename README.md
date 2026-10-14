@@ -4,65 +4,71 @@
 
 ## Overview
 
-This repository is an unofficial, educational explainer of the paper *Harvestable Black Pepper Recognition Using Computer Vision* (S. Joseph, N. F. Jane Rose and P. V. Akhil, ICACC 2019, IEEE). It explains the idea of a staged image pipeline with a ResNet-50 verifier that separates harvestable pepper from leaves, branches and unripe berries, using only what the public abstract and the author's CV state, plus clearly labelled illustrative demos on synthetic images. **No code, data, images, figures or text from the paper are included, and the paper's code and data are not released.**
+This repository is an independent, educational explainer of the published paper *Harvestable Black Pepper Recognition Using Computer Vision* (S. Joseph, N. F. Jane Rose and P. V. Akhil, ICACC 2019, IEEE). It explains in plain language how the paper recognises harvestable pepper: pre-processing, three gated stages ending in a ResNet-50 classifier, and how its "global accuracy" is defined. It also points out where the paper is unclear. **No code, data, images, figures, tables or text from the paper are included, and the paper's code and data are not released.** Every statement about the paper is traced to a paper page in [docs/runs/2026-10-14-paper-trace.md](docs/runs/2026-10-14-paper-trace.md).
 
 ## Demo
 
-Open `docs/index.html` in a browser (no build step, no network needed). No hosted demo exists; none has been deployed.
+Open `docs/index.html` in a browser (no build step, no network needed). Once GitHub Pages is on, the page is served from the `docs/` folder of `main`.
 
-![Segmentation demo at phone width, showing a synthetic vine scene, its colour mask, the cleaned mask and candidate boxes](docs/runs/2026-10-14-demo-390.png)
+![Colour-threshold demo at phone width, showing a synthetic vine scene, its colour mask, the cleaned mask and circles on the surviving objects](docs/runs/2026-10-14-demo-390.png)
 
 The page contains:
 
-- the problem and what the public sources state, with a table of what is and is not public;
-- a stage-by-stage walkthrough of the cascade, and a small cascade explorer;
-- an interactive segmentation demo on generated synthetic images (HSV thresholds, morphological clean-up, blob-size filter, live masks);
-- a conceptual "ResNet-50 as a verifier" panel based on the public ResNet architecture;
-- the paper's reported result, shown only as "Reported in the paper (not reproduced here)";
+- the problem and a one-table summary of the paper with paper page numbers;
+- a step-by-step walkthrough of the pipeline, and a gate explorer that applies the paper's go/stop logic to values you choose (including both readings of the stage-2 rule);
+- an interactive colour-threshold and clean-up demo on generated synthetic images;
+- how ResNet-50 is used in the paper, plus a panel on the standard public ResNet-50 architecture;
+- the definition of "global accuracy", with a small arithmetic tool on example counts;
+- the paper's reported result, shown as "Reported in the paper (not reproduced here)";
 - limitations, future scope, and sources and gaps.
 
-Every illustrative element carries the label **"Illustrative example, not the paper's implementation"**.
+Anything that is not the paper's real operation carries the label **"Illustrative, not the paper's implementation"** (or "Illustrative counts, not the paper's results").
 
 ## Problem statement
 
-Black pepper is picked when berries on a spike reach the right stage of maturity, which is normally judged by eye. An automated harvester must first find harvestable spikes in a cluttered scene of leaves, trunks, branches and unripe berries. The paper's stated objective is to speed up that recognition for automated harvesting.
+Kerala is a major black-pepper region but not the largest producer. The authors link this in part to a shortage of skilled labour and to the difficulty of spotting harvestable pepper in time (paper p. 1). Their aim is to find harvestable pepper, and its position, in a photograph, for use in an automated harvesting drone (p. 1). The paper gives no formal definition of "harvestable"; its first stage looks for the red colour range.
 
 ## Approach
 
-What the public abstract and CV state about the paper:
+How the paper's method works, in our words (page numbers are the paper's):
 
 ```mermaid
 flowchart LR
-  A[Digital-camera image] --> S1[Stage 1]
-  S1 -- conditions met --> S2[Stage 2]
-  S2 -- conditions met --> S3[Stage 3]
-  S3 -- conditions met --> V[ResNet-50 verification]
-  V --> R[Harvestable pepper recognised]
-  S1 -. not met .-> X[Stop early]
-  S2 -. not met .-> X
-  S3 -. not met .-> X
+  A[Camera image] --> P[Pre-processing]
+  P --> S1[Stage 1: HSV red segmentation]
+  S1 -- red found --> S2[Stage 2: clean-up and circles]
+  S2 -- circles found --> S3[Stage 3: ResNet-50]
+  S3 --> R{Pepper?}
+  S1 -. no red .-> X[No harvestable pepper]
+  S2 -. no circles .-> X
+  R -- no --> X
+  R -- yes --> Y[Pepper ready for harvest]
 ```
 
-- Three image-processing stages followed by a verification model.
-- An image moves to the next stage only if pre-defined conditions are met, which the abstract says reduces processing time and computing resources.
-- Several classifiers were tried by trial and error; ResNet-50 was chosen for the final validation.
+- **Pre-processing** (p. 3-4): edge-preserving guided filtering, local Laplacian filtering for contrast, then histogram equalisation; the pseudo-code resizes input to 300 x 400 (p. 6).
+- **Stage 1** (p. 1, 4): convert to HSV and keep the red range as the region of interest. HSV was preferred to RGB, YCbCr and L*a*b* because red and yellow separate well from green. Gate: no red, stop.
+- **Stage 2** (p. 1, 5, 6): morphological operations remove small noise, objects under 60 pixels are dropped, the centroid of each remaining object gets a circle, and circles are counted. Gate: no circles, stop. *Unclear:* the prose says zero circles, the pseudo-code says one or fewer.
+- **Stage 3** (p. 1, 5, 6): ResNet-50 gets the input image and answers pepper or not pepper. It was trained on more than 500 images from the new set. It was chosen over ResNet-101, GoogLeNet, AlexNet and an SVM-based classifier on accuracy and run time (p. 6). *Unclear:* whether the network was fine-tuned or used only for features.
+- Moving to the next stage only when a condition is met is said to reduce processing time and computing resources (p. 2).
 
-**What the three stages actually do is not public.** The demo therefore does not claim to reproduce them. It illustrates generic, standard techniques on synthetic images: HSV colour thresholding, morphological opening and closing, and filtering blobs by area.
+The demo cannot reproduce stages 1 to 3 without the paper's images and settings, so it shows generic versions of the stage-1 and stage-2 operations on synthetic images. No classifier runs.
 
 ## Data
 
-- The paper introduces a new black-pepper image set captured with a digital camera. **It is not included here and is not released.**
+- The paper introduces a new black-pepper image set captured with an ordinary digital camera in natural canopies in Kerala; ResNet-50 was trained on more than 500 of its images (p. 1, 5, 7). **It is not included here, and the paper does not say it is available.**
+- Test set: 115 images, 65 with harvestable pepper and 50 without (p. 6-7). Whether test and training images are kept apart is not stated.
 - The demo generates cartoon scenes in code (`generateScene` in `docs/js/imageproc.js`) from a numeric seed. They are original synthetic images, not derived from the paper's images.
 
 ## Results
 
 | Metric | Value | Status | How measured | Date |
 |---|---|---|---|---|
-| Global accuracy | 100% | Reported (paper abstract, CV). Not reproduced here | Not stated in public sources | 2019 |
-| Unit tests for the image-processing helpers | 24 of 24 pass | Verified (run 2026-10-14) | `node --test`, log in [docs/runs/2026-10-14-checks.md](docs/runs/2026-10-14-checks.md) | 2026-10-14 |
-| Page console errors at 390 px and 1280 px | 0 | Verified (run 2026-10-14) | Playwright, see the same log | 2026-10-14 |
+| Global accuracy (whole three-stage system) | 100% | Reported in the paper (p. 5-7). Not reproduced here | Share of 115 test images (65 with harvestable pepper, 50 without) the complete system classified correctly: 115 of 115; recall and precision both 100% | 2019 |
+| Classifier-only accuracy | 96.35% (table) or 98.44% (text) | Reported in the paper (p. 5); the two figures conflict, see Limitations | Stage 3 alone, from a confusion matrix | 2019 |
+| Unit tests for the helpers | 37 of 37 pass | Verified (run 2026-10-14) | `node --test`, log in [docs/runs/2026-10-14-checks.md](docs/runs/2026-10-14-checks.md) | 2026-10-14 |
+| Page console errors at 390 px and 1280 px | 0 | Verified (run 2026-10-14) | Playwright, same log | 2026-10-14 |
 
-The demo displays no accuracy or other headline metric. It runs no recognition model.
+The demos display no accuracy or other headline metric on images. They run no recognition model.
 
 ## Tech stack
 
@@ -78,7 +84,7 @@ cd black-pepper-recognition
 node --test
 ```
 
-Expected output ends with `# tests 24`, `# pass 24`, `# fail 0`.
+Expected output ends with `# tests 37`, `# pass 37`, `# fail 0`.
 
 To view the page, open `docs/index.html` directly, or serve it:
 
@@ -93,53 +99,63 @@ then browse to `http://localhost:8000/`.
 ```
 docs/index.html            the explainer page
 docs/js/imageproc.js       HSV, thresholding, morphology, connected components, synthetic scene generator
-docs/js/app.js             page behaviour (stepper, cascade explorer, demo, ResNet panel)
-docs/runs/                 dated check logs and screenshots
-tests/imageproc.test.js    node --test suite for the helpers
+docs/js/paperlogic.js      gate logic, confusion-count metrics and circles, as the paper describes them
+docs/js/app.js             page behaviour (stepper, gate explorer, demo, ResNet panel, arithmetic tool)
+docs/runs/                 dated check logs, the paper trace, screenshots
+tests/imageproc.test.js    node --test suite for the image helpers
+tests/paperlogic.test.js   node --test suite for the gate and metric helpers
 LICENSE                    CC BY-NC-ND 4.0
 ```
 
 ## Real-world applications
 
-Selective harvesting of spice and fruit crops, yield monitoring, and ripeness grading are the settings where this kind of recognition is useful. The paper's own stated application is automated black-pepper harvesting.
+Selective harvesting of spice and fruit crops, yield monitoring, and ripeness grading are the settings where this kind of recognition is useful. The paper's own stated application is an automated harvesting drone (p. 1).
 
 ## Limitations
 
-- Single-crop image set (black pepper only).
-- Capture conditions (lab or field, lighting) and test-set size are not stated in the public sources.
-- A single reported global accuracy of 100%, without public detail on how it was measured.
+The paper has no limitations section. Its nearest statements are that a high-performance GPU and processor are desirable (p. 2-3) and its future-work list (p. 7).
+
+Points a careful reader would raise (this explainer's notes, not the paper's):
+
+- 115 test images is a modest sample. Zero errors in 115 trials is consistent with a true error rate up to about 2.6% (one-sided 95% bound, derived here, not from the paper).
+- Whether test images overlap training images is not stated.
+- Lighting, camera settings and other capture details are not given; one crop, one region.
+- Two classifier-only accuracies (96.35% in the table, 98.44% in the text); the table figure matches the table's confusion matrix. The stage-2 gate differs between prose and pseudo-code. The printed accuracy formula lacks brackets.
+- Fine-tuning versus feature extraction, input size and training settings are not stated.
+- Speed is described as reasonable for real-time use but no end-to-end scan time is given.
+- No released data or code, so the result cannot be re-run.
 - 2019 methods; today's detectors and segmentation models are more direct.
-- No released data or code, so the paper's result cannot be re-run.
 - The demos here use cartoon images and generic techniques; they do not test or approximate the paper's results.
 
 ## Future scope
 
-These are suggestions of this explainer, not claims from the paper: modern one-stage or transformer detectors and instance segmentation; edge deployment with quantised models; evaluation across farms, seasons and lighting, with depth sensing; reporting precision, recall and confusion matrices on a shared benchmark.
+From the paper (p. 7): live video instead of stills; automatic cutting-point identification; ground or aerial vehicles with a cutting mechanism; a mobile app for farmers.
+
+Suggestions of this explainer, not from the paper: modern detectors and instance segmentation; edge deployment with quantised models; evaluation across farms, seasons and lighting on a shared split with per-class precision and recall.
 
 ## Sources and gaps
 
 Sources used:
 
-- Crossref record for DOI 10.1109/ICACC48162.2019.8986220 (title, authors, venue, pages, year).
-- The public abstract, as indexed by Semantic Scholar from the IEEE record. The IEEE Xplore page itself returned no content to the automated fetch used here.
-- The author's CV and portfolio card.
+- The published paper (a copy supplied by a co-author; it is not in this repository). Claim-to-page list: [docs/runs/2026-10-14-paper-trace.md](docs/runs/2026-10-14-paper-trace.md).
+- Crossref record for DOI 10.1109/ICACC48162.2019.8986220 (author form, venue, pages, year). The conference name and city are not printed in the supplied copy.
 - He, Zhang, Ren and Sun, "Deep Residual Learning for Image Recognition", CVPR 2016, DOI 10.1109/CVPR.2016.90, for the standard ResNet-50 architecture.
-- General reference summary of black-pepper harvest maturity: https://en.wikipedia.org/wiki/Black_pepper (background only, not from the paper).
 
-Questions the public record cannot answer (the paper PDF would):
+Still not answered by the paper:
 
-1. What does each of the three stages do, and what are the pass conditions between them?
-2. What does the paper mean by "harvestable"?
-3. Dataset size, class balance, splits, capture setting (lab or field) and lighting?
-4. How was ResNet-50 used: trained from scratch or fine-tuned, input size, classes, decision rule?
-5. How is "global accuracy" defined, and on how many test images?
-6. What was the scan time, and on what hardware?
+1. A formal definition of "harvestable".
+2. Whether the 500+ images are the whole set or the training part, the split, and any train/test overlap.
+3. Capture details (lighting, camera model, resolution) and whether the set is available.
+4. Whether ResNet-50 was fine-tuned or used for features, its input size, and training settings.
+5. Which stage-2 rule was actually run, and the exact red range.
+6. An end-to-end scan time.
+7. Which of 98.44% and 96.35% is the classifier-only accuracy.
 
 ## Credits & citation
 
-Paper: S. Joseph, N. F. Jane Rose and P. V. Akhil, "Harvestable Black Pepper Recognition Using Computer Vision," *2019 9th International Conference on Advances in Computing and Communication (ICACC)*, Kochi, India, IEEE, 2019, pp. 97-102. DOI: [10.1109/ICACC48162.2019.8986220](https://doi.org/10.1109/ICACC48162.2019.8986220).
+Paper: S. Joseph, N. F. Jane Rose and P. V. Akhil, "Harvestable Black Pepper Recognition Using Computer Vision," *2019 9th International Conference on Advances in Computing and Communication (ICACC)*, Kochi, India, IEEE, 2019, pp. 97-102. DOI: [10.1109/ICACC48162.2019.8986220](https://doi.org/10.1109/ICACC48162.2019.8986220). (The paper's title page gives the third author as Akhil Vijayan.)
 
-Credit for the paper belongs to all three authors: Shelbi Joseph, N. F. Jane Rose (Jane Rose Ferdinant) and P. V. Akhil. This explainer is independent and is not affiliated with or endorsed by IEEE or the conference. The co-authors have not agreed to release the paper's code or data, so none is included.
+Credit for the paper belongs to all three authors: Shelbi Joseph, N. F. Jane Rose (Jane Rose Ferdinant) and P. V. Akhil. This explainer is independent and is not affiliated with or endorsed by IEEE or the conference. It explains the published method only; the paper's code and data are not released and none is included.
 
 ## License
 
